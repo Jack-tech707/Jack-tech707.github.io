@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+  <title>buffers</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/3.39/dijit/themes/claro/claro.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/3.39/esri/css/esri.css">
+
+  <script src="https://js.arcgis.com/3.39/"></script>
+  <script>
+    dojo.require("esri.map");
+    dojo.require("esri.tasks.geometry");
+
+    var map = null;
+    var gsvc = null;
+
+    function initialize() {
+      map = new esri.Map("map", {
+        basemap: "streets-vector",
+        center: [-1.09626573,37.01288458],
+        zoom: 15
+      });
+
+      gsvc = new esri.tasks.GeometryService("https://utility.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer");
+
+      map.on("click", doBuffer);
+
+    }
+
+    function doBuffer(evt) {
+
+      map.graphics.clear();
+      var params = new esri.tasks.BufferParameters();
+      params.geometries = [ evt.mapPoint ];
+
+      //buffer in linear units such as meters, km, miles etc.
+      params.distances = [ 10, 15, 20 ];
+      params.unit = esri.tasks.GeometryService.UNIT_KILOMETER;
+      params.outSpatialReference = map.spatialReference;
+
+      gsvc.buffer(params, showBuffer);
+    }
+
+    function showBuffer(geometries) {
+      var symbol = new esri.symbol.SimpleFillSymbol(
+        esri.symbol.SimpleFillSymbol.STYLE_SOLID,
+        new esri.symbol.SimpleLineSymbol(
+          esri.symbol.SimpleLineSymbol.STYLE_SOLID,
+          new dojo.Color([0,0,255,0.65]), 2
+        ),
+        new dojo.Color([0,0,255,0.35])
+      );
+
+      dojo.forEach(geometries, function(geometry) {
+        var graphic = new esri.Graphic(geometry,symbol);
+        map.graphics.add(graphic);
+      });
+    }
+
+    dojo.ready(initialize);
+  </script>
+</head>
+
+<body class="claro">
+  <b>Kimani Mbugua</b>
+  <p style="color:blue"> click on any location on the map to create a buffer</p>
+  <div id="map" style="width:1000px; height:450px; border:2px solid #000;"></div>
+</body>
+
+</html>
